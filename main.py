@@ -10,6 +10,7 @@ ID = 1
 
 def getProductInfo(url, category):
     global ID
+
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
     attributes = {}
@@ -19,12 +20,20 @@ def getProductInfo(url, category):
         vals = attr.findAll("td")
         attributes[vals[0].text.replace("\n", "").replace("\t", "")] = vals[1].text.replace("\n", "").replace("\t", "")
 
+    images = {1: soup.find("img", {"alt": name})["src"]}
+    preview_images = soup.findAll("a", {"class": "thumb-image js-init-gallery"})
+    img_id = 2
+
+    for preview_image in preview_images:
+        images[img_id] = preview_image["data-src-large"]
+        img_id += 1
+
     info = {
         "id": ID,
         "name": name,
         "category": category,
         "description": soup.find("span", {"class": "description"}).text.replace("\n", "").replace("\t", ""),
-        "img": soup.find("img", {"alt": name})['src'],
+        "img": images,
         "attributes": attributes
     }
     ID += 1
