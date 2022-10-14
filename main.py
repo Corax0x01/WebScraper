@@ -5,9 +5,11 @@ from bs4 import BeautifulSoup
 
 
 number_of_products = 0
+ID = 1
 
 
 def getProductInfo(url):
+    global ID
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
     attributes = {}
@@ -18,12 +20,13 @@ def getProductInfo(url):
         attributes[vals[0].text.replace("\n", "").replace("\t", "")] = vals[1].text.replace("\n", "").replace("\t", "")
 
     info = {
+        "id": ID,
         "name": name,
         "description": soup.find("span", {"class": "description"}).text.replace("\n", "").replace("\t", ""),
         "img": soup.find("img", {"alt": name})['src'],
         "attributes": attributes
     }
-
+    ID += 1
     return info
 
 
@@ -50,7 +53,7 @@ def getLinks(name):
     page = 1
     links = []
 
-    while True:
+    while number_of_products <= 20:  # zmienić na 500
         urls = {
             "leds": f"https://www.leroymerlin.pl/oswietlenie/tasmy-led-profile-zasilacze,a1185,strona-{page}.html",
             "lamps": f"https://www.leroymerlin.pl/oswietlenie/oswietlenie-scienne-i-sufitowe/zyrandole-lampy-wiszace-i-sufitowe,a956,strona-{page}.html"
@@ -61,7 +64,7 @@ def getLinks(name):
         for link in links_on_page:
             links.append(link)
         page += 1
-        if len(soup.find_all("a", {"class": "next disabled"})) != 0 or number_of_products >= 20:  # zmienić na 500
+        if len(soup.find_all("a", {"class": "next disabled"})) != 0:
             break
     return links
 
