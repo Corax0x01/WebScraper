@@ -12,9 +12,11 @@ def getProductInfo(url):
 
     attributes = {}
     name = soup.find("div", {"class": "product-title"}).text.replace("\n", "").replace("\t", "")
+
     for attr in soup.findAll("tr", {"class": "item-row"}):
         vals = attr.findAll("td")
         attributes[vals[0].text.replace("\n", "").replace("\t", "")] = vals[1].text.replace("\n", "").replace("\t", "")
+
     info = {
         "name": name,
         "description": soup.find("span", {"class": "description"}).text.replace("\n", "").replace("\t", ""),
@@ -59,7 +61,7 @@ def getLinks(name):
         for link in links_on_page:
             links.append(link)
         page += 1
-        if len(soup.find_all("a", {"class": "next disabled"})) != 0 or number_of_products >= 20: #zmienić na 500
+        if len(soup.find_all("a", {"class": "next disabled"})) != 0 or number_of_products >= 20:  # zmienić na 500
             break
     return links
 
