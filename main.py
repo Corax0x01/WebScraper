@@ -8,7 +8,7 @@ number_of_products = 0
 ID = 1
 
 
-def getProductInfo(url):
+def getProductInfo(url, category):
     global ID
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
@@ -22,6 +22,7 @@ def getProductInfo(url):
     info = {
         "id": ID,
         "name": name,
+        "category": category,
         "description": soup.find("span", {"class": "description"}).text.replace("\n", "").replace("\t", ""),
         "img": soup.find("img", {"alt": name})['src'],
         "attributes": attributes
@@ -36,12 +37,12 @@ def getAllProducts(led_links, lamp_links):
 
     for link in led_links:
         product_id = link.split(',')[-2]
-        products[product_id] = getProductInfo(base_url + link)
+        products[product_id] = getProductInfo(base_url + link, "leds")
         if len(products) % 10 == 0:
             time.sleep(5)
     for link in lamp_links:
         product_id = link.split(',')[-2]
-        products[product_id] = getProductInfo(base_url + link)
+        products[product_id] = getProductInfo(base_url + link, "lamps")
         if len(products) % 10 == 0:
             time.sleep(5)
 
