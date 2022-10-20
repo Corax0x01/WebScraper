@@ -53,7 +53,7 @@ def getAllProducts(led_links, lamp_links):
         product_id = link.split(',')[-2]
         products[product_id] = getProductInfo(base_url + link, "lamps")
         if len(products) % 10 == 0:
-            time.sleep(5)
+            time.sleep(1)
 
     return products
 
