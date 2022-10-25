@@ -1,16 +1,14 @@
 import requests
 import time
 import json
+import csv
 from bs4 import BeautifulSoup
 
 
 number_of_products = 0
-ID = 1
 
 
 def getProductInfo(url, category):
-    global ID
-
     soup = BeautifulSoup(requests.get(url).text, "html.parser")
 
     attributes = {}
@@ -28,30 +26,30 @@ def getProductInfo(url, category):
         images[img_id] = preview_image["data-src-large"]
         img_id += 1
 
+    description = soup.find("span", {"class": "description"}).text.replace("\n", "").replace("\t", "")
+
+    ID = url.split(',')[-2]
+
     info = {
         "id": ID,
         "name": name,
         "category": category,
-        "description": soup.find("span", {"class": "description"}).text.replace("\n", "").replace("\t", ""),
-        "img": images,
-        "attributes": attributes
+        "description": description,
+        "attributes": attributes,
+        "img": images
     }
-    ID += 1
     return info
 
 
 def getAllProducts(led_links, lamp_links):
     products = {}
     base_url = "https://www.leroymerlin.pl"
-
     for link in led_links:
-        product_id = link.split(',')[-2]
-        products[product_id] = getProductInfo(base_url + link, "leds")
+        products[link.split(',')[-2]] = getProductInfo(base_url + link, "leds")
         if len(products) % 10 == 0:
             time.sleep(5)
     for link in lamp_links:
-        product_id = link.split(',')[-2]
-        products[product_id] = getProductInfo(base_url + link, "lamps")
+        products[link.split(',')[-2]] = getProductInfo(base_url + link, "lamps")
         if len(products) % 10 == 0:
             time.sleep(1)
 
@@ -80,13 +78,28 @@ def getLinks(name):
 
 
 if __name__ == "__main__":
+    csv_columns = ['ID', 'Name', 'Categories', 'Price', 'Short desc.', 'Long desc', 'Images URL']
 
     led_links = getLinks('leds')
     lamp_links = getLinks('lamps')
 
     all_products_info = {"products": getAllProducts(led_links, lamp_links)}
 
-    product_info_json = json.dumps(all_products_info, ensure_ascii=False)
+    # all_products_json = json.dumps(all_products_info, ensure_ascii=False)
 
-    with open("products.json", "w", encoding='utf8') as file:
-        file.write(product_info_json)
+    # with open("products.json", "w", encoding="utf8") as file:
+    #     file.write(all_products_json)
+
+    with open("products.csv", "w", encoding="utf8") as file:
+        writer = csv.DictWriter(file, fieldnames=csv_columns, delimiter=';')
+        writer.writeheader()
+        for data in all_products_info["products"]:
+            writer.writerow({
+                "ID": all_products_info["products"][data]["id"],
+                "Name": all_products_info["products"][data]["name"],
+                "Categories": all_products_info["products"][data]["category"],
+                "Price": all_products_info["products"][data]["attributes"]["Cena"].split("/")[0].replace(" ", ""),
+                "Short desc.": all_products_info["products"][data]["description"],
+                "Long desc": str(all_products_info["products"][data]["attributes"]).replace("{", "").replace("}", ""),
+                "Images URL": all_products_info["products"][data]["img"]
+            })
